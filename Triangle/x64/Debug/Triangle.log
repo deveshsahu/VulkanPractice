@@ -1,0 +1,10 @@
+﻿  TriangleApplication.cpp
+c:\users\deves\documents\vs2015\triangle\triangle\triangleapplication.cpp(417): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
+c:\users\deves\documents\vs2015\triangle\triangle\triangleapplication.cpp(418): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
+c:\users\deves\documents\vs2015\triangle\triangle\triangleapplication.cpp(946): warning C4838: conversion from 'int' to 'uint32_t' requires a narrowing conversion
+  Generating Code...
+  Skipping... (no relevant changes detected)
+  main.cpp
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+  Triangle.vcxproj -> C:\Users\deves\Documents\vs2015\Triangle\x64\Debug\Triangle.exe
+  Triangle.vcxproj -> C:\Users\deves\Documents\vs2015\Triangle\x64\Debug\Triangle.pdb (Full PDB)
