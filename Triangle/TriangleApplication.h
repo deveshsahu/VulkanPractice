@@ -35,6 +35,9 @@ public:
 
 	void updateUniformBuffer();
 
+	void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+
 public:
 	static void onWindowResized(GLFWwindow* window, int width, int height);
 
@@ -61,13 +64,20 @@ private:
 	void myCreateDescriptorPool();
 	void myCreateDescriptorSet();
 	void myCreateCommandPool();
+	void myCreateTextureImage();
 	void myCreateCommandBuffers();
 	void myCleanupSwapChain();
 
 	void myCreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
 		VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
+	void myCreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags
+		usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+
 	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize bufferSize);
+
+	void myBeginSingleTimeCommands(VkCommandBuffer& buffer);
+	void myEndSingleTimeCommands(VkCommandBuffer& buffer);
 
 	// Additional Helper functions
 	VkShaderModule myCreateShaderModule(const std::vector<char>& byteCode);
@@ -128,6 +138,9 @@ private:
 
 	VkBuffer myUniformBuffer;
 	VkDeviceMemory myUniformBufferMemory; 
+
+	VkImage myTextureImage;
+	VkDeviceMemory myTextureImageMemory;
 
 	const glm::mat4 vulkanMatrixCorrection = glm::mat4(
 		1.0f, 0.0f, 0.0f, 0.0f,
