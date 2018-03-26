@@ -58,6 +58,7 @@ private:
 	void myCreateDescriptorSetLayout();
 	void myCreateGraphicsPipeline();
 	void myCreateFramebuffers();
+	void myCreateTextureImageView();
 	void myCreateVertexBuffer();
 	void myCreateIndexBuffer();
 	void myCreateUniformBuffer();
@@ -77,7 +78,10 @@ private:
 	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize bufferSize);
 
 	void myBeginSingleTimeCommands(VkCommandBuffer& buffer);
+
 	void myEndSingleTimeCommands(VkCommandBuffer& buffer);
+
+	VkImageView myCreateImageView(VkImage image, VkFormat format);
 
 	// Additional Helper functions
 	VkShaderModule myCreateShaderModule(const std::vector<char>& byteCode);
@@ -141,6 +145,8 @@ private:
 
 	VkImage myTextureImage;
 	VkDeviceMemory myTextureImageMemory;
+
+	VkImageView myTextureImageView;
 
 	const glm::mat4 vulkanMatrixCorrection = glm::mat4(
 		1.0f, 0.0f, 0.0f, 0.0f,

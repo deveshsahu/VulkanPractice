@@ -188,6 +188,8 @@ void TriangleApplication::myCleanup()
 {
 	myCleanupSwapChain();
 
+	vkDestroyImageView(myLogicalDevice, myTextureImageView, nullptr);
+
 	vkDestroyImage(myLogicalDevice, myTextureImage, nullptr);
 	vkFreeMemory(myLogicalDevice, myTextureImageMemory, nullptr);
 
@@ -285,25 +287,7 @@ void TriangleApplication::myCreateImageViews()
 {
 	mySwapChainImageViews.resize(mySwapChainImages.size());
 	for (size_t i = 0; i < mySwapChainImages.size(); ++i)
-	{
-		VkImageViewCreateInfo createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		createInfo.image = mySwapChainImages[i];
-		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		createInfo.format = mySwapChainImageFormat;
-		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-		createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-		createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-		createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-		createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		createInfo.subresourceRange.baseArrayLayer = 0;
-		createInfo.subresourceRange.layerCount = 1;
-		createInfo.subresourceRange.levelCount = 1;
-		createInfo.subresourceRange.baseMipLevel = 0;
-
-		if (vkCreateImageView(myLogicalDevice, &createInfo, nullptr, &mySwapChainImageViews[i]) != VK_SUCCESS)
-			throw std::runtime_error("Failed to create Image View!");
-	}
+		mySwapChainImageViews[i] = myCreateImageView(mySwapChainImages[i], mySwapChainImageFormat);
 }
 
 void TriangleApplication::myCreateRenderPass()
@@ -540,6 +524,11 @@ void TriangleApplication::myCreateFramebuffers()
 	}
 }
 
+void TriangleApplication::myCreateTextureImageView()
+{
+	myTextureImageView = myCreateImageView(myTextureImage, VK_FORMAT_R8G8B8A8_UNORM);
+}
+
 void TriangleApplication::myCreateCommandPool()
 {
 	auto queueFamilyIndices = findQueueFamilies(myPhysicalDevice);
@@ -576,9 +565,11 @@ void TriangleApplication::myCreateTextureImage()
 	myCreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT |
 		VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, myTextureImage, myTextureImageMemory);
 
-	transitionImageLayout(myTextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	transitionImageLayout(myTextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 	copyBufferToImage(stagingBuffer, myTextureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-	transitionImageLayout(myTextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	transitionImageLayout(myTextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	vkDestroyBuffer(myLogicalDevice, stagingBuffer, nullptr);
 	vkFreeMemory(myLogicalDevice, stagingBufferMemory, nullptr);
@@ -691,6 +682,30 @@ void TriangleApplication::myEndSingleTimeCommands(VkCommandBuffer& commandBuffer
 	vkQueueWaitIdle(myGraphicsQueue);
 
 	vkFreeCommandBuffers(myLogicalDevice, myCommandPool, 1, &commandBuffer);
+}
+
+VkImageView TriangleApplication::myCreateImageView(VkImage image, VkFormat format)
+{
+	VkImageViewCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	createInfo.image = image;
+	createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	createInfo.format = format;
+	createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+	createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+	createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+	createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+	createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	createInfo.subresourceRange.baseArrayLayer = 0;
+	createInfo.subresourceRange.layerCount = 1;
+	createInfo.subresourceRange.levelCount = 1;
+	createInfo.subresourceRange.baseMipLevel = 0;
+
+	VkImageView imageView;
+	if (vkCreateImageView(myLogicalDevice, &createInfo, nullptr, &imageView) != VK_SUCCESS)
+		throw std::runtime_error("Failed to create Image View!");
+
+	return imageView;
 }
 
 void TriangleApplication::myCreateVertexBuffer()
@@ -904,7 +919,7 @@ void TriangleApplication::transitionImageLayout(VkImage image, VkFormat format, 
 	VkPipelineStageFlags sourceStage;
 	VkPipelineStageFlags destinationStage;
 
-	if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
 	{
 		barrier.srcAccessMask = 0;
 		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -915,7 +930,7 @@ void TriangleApplication::transitionImageLayout(VkImage image, VkFormat format, 
 	else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 	{
 		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
