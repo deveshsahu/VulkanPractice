@@ -59,6 +59,7 @@ private:
 	void myCreateGraphicsPipeline();
 	void myCreateFramebuffers();
 	void myCreateTextureImageView();
+	void myCreateTextureSampler();
 	void myCreateVertexBuffer();
 	void myCreateIndexBuffer();
 	void myCreateUniformBuffer();
@@ -126,10 +127,10 @@ private:
 	// Data
 	const std::vector<Vertex> myVertexData = 
 	{
-		{glm::vec2( 0.5f,  0.5f), glm::vec3(1.0f, 0.0f, 0.0f)},
-		{glm::vec2(-0.5f,  0.5f), glm::vec3(0.0f, 1.0f, 0.0f)},
-		{glm::vec2(-0.5f, -0.5f), glm::vec3(0.0f, 0.0f, 1.0f)},
-		{glm::vec2( 0.5f, -0.5f), glm::vec3(1.0f, 1.0f, 1.0f)}
+		{glm::vec2( 0.5f,  0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(1, 1)},
+		{glm::vec2(-0.5f,  0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0, 1)},
+		{glm::vec2(-0.5f, -0.5f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0, 0)},
+		{glm::vec2( 0.5f, -0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1, 0)}
 	};
 
 	const std::vector<uint16_t> myIndexData = { 0, 1, 2, 2, 3, 0 };
@@ -147,6 +148,8 @@ private:
 	VkDeviceMemory myTextureImageMemory;
 
 	VkImageView myTextureImageView;
+
+	VkSampler myTextureSampler;
 
 	const glm::mat4 vulkanMatrixCorrection = glm::mat4(
 		1.0f, 0.0f, 0.0f, 0.0f,

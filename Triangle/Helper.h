@@ -66,6 +66,7 @@ static std::vector<char> readFile(const std::string & filename)
 struct Vertex {
 	glm::vec2 pos;
 	glm::vec3 color;
+	glm::vec2 texCoord;
 };
 
 static VkVertexInputBindingDescription getBindingDescription()
@@ -78,9 +79,9 @@ static VkVertexInputBindingDescription getBindingDescription()
 	return bindingDescription;
 }
 
-static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions()
+static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
 {
-	std::array<VkVertexInputAttributeDescription, 2> attributeDescription = {};
+	std::array<VkVertexInputAttributeDescription, 3> attributeDescription = {};
 	attributeDescription[0].binding = 0;
 	attributeDescription[0].format = VK_FORMAT_R32G32_SFLOAT;
 	attributeDescription[0].location = 0;
@@ -90,6 +91,11 @@ static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions
 	attributeDescription[1].location = 1;
 	attributeDescription[1].format = VK_FORMAT_R32G32B32_SFLOAT;
 	attributeDescription[1].offset = offsetof(Vertex, color);
+
+	attributeDescription[2].binding = 0;
+	attributeDescription[2].location = 2;
+	attributeDescription[2].format = VK_FORMAT_R32G32_SFLOAT;
+	attributeDescription[2].offset = offsetof(Vertex, texCoord);
 
 	return attributeDescription;
 }
