@@ -18,6 +18,12 @@ public:
 
 	QueueFamilyIndex findQueueFamilies(VkPhysicalDevice device);
 
+	VkFormat findSupportedFormat(const std::vector<VkFormat>& formatPriority, VkImageTiling tiling, VkFormatFeatureFlags features);
+
+	VkFormat findDepthFormat();
+
+	bool hasStencilComponent(VkFormat format);
+
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallBack(VkDebugReportFlagsEXT flags,
 		VkDebugReportObjectTypeEXT objType,
 		uint64_t obj,
@@ -66,6 +72,7 @@ private:
 	void myCreateDescriptorPool();
 	void myCreateDescriptorSet();
 	void myCreateCommandPool();
+	void myCreateDepthTestResources();
 	void myCreateTextureImage();
 	void myCreateCommandBuffers();
 	void myCleanupSwapChain();
@@ -82,7 +89,7 @@ private:
 
 	void myEndSingleTimeCommands(VkCommandBuffer& buffer);
 
-	VkImageView myCreateImageView(VkImage image, VkFormat format);
+	VkImageView myCreateImageView(VkImage image, VkFormat format, VkImageAspectFlags flags);
 
 	// Additional Helper functions
 	VkShaderModule myCreateShaderModule(const std::vector<char>& byteCode);
@@ -127,13 +134,18 @@ private:
 	// Data
 	const std::vector<Vertex> myVertexData = 
 	{
-		{glm::vec2( 0.5f,  0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(1, 1)},
-		{glm::vec2(-0.5f,  0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0, 1)},
-		{glm::vec2(-0.5f, -0.5f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0, 0)},
-		{glm::vec2( 0.5f, -0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1, 0)}
+		{glm::vec3( 0.5f,  0.5f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(1, 1)},
+		{glm::vec3(-0.5f,  0.5f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0, 1)},
+		{glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0, 0)},
+		{glm::vec3( 0.5f, -0.5f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1, 0)},
+
+		{ glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(1, 1) },
+		{ glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0, 1) },
+		{ glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0, 0) },
+		{ glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1, 0) }
 	};
 
-	const std::vector<uint16_t> myIndexData = { 0, 1, 2, 2, 3, 0 };
+	const std::vector<uint16_t> myIndexData = { 0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4 };
 
 	VkBuffer myVertexBuffer;
 	VkDeviceMemory myVertexBufferMemory;
@@ -148,6 +160,10 @@ private:
 	VkDeviceMemory myTextureImageMemory;
 
 	VkImageView myTextureImageView;
+
+	VkImage myDepthImage;
+	VkDeviceMemory myDepthImageMemory;
+	VkImageView myDepthImageView;
 
 	VkSampler myTextureSampler;
 

@@ -23,7 +23,6 @@ TriangleApplication::TriangleApplication()
 {
 }
 
-
 TriangleApplication::~TriangleApplication()
 {
 }
@@ -98,6 +97,35 @@ QueueFamilyIndex TriangleApplication::findQueueFamilies(VkPhysicalDevice device)
 	return index;
 }
 
+VkFormat TriangleApplication::findSupportedFormat(const std::vector<VkFormat>& formatPriority, VkImageTiling tiling, VkFormatFeatureFlags features)
+{
+	for (auto& format : formatPriority)
+	{
+		VkFormatProperties props;
+		vkGetPhysicalDeviceFormatProperties(myPhysicalDevice, format, &props);
+		if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
+			return format;
+		else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
+			return format;
+	}
+	throw std::runtime_error("Failed to find supported format!");
+	return VkFormat();
+}
+
+VkFormat TriangleApplication::findDepthFormat()
+{
+	return findSupportedFormat(
+	{VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT}, 
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+	);
+}
+
+bool TriangleApplication::hasStencilComponent(VkFormat format)
+{
+	return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+}
+
 VKAPI_ATTR VkBool32 VKAPI_CALL TriangleApplication::debugCallBack(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj, size_t location, int32_t code, const char * layerPrefix, const char * msg, void * userData)
 {
 	std::cerr << "Validation layer: " << msg << std::endl;
@@ -141,8 +169,9 @@ void TriangleApplication::myInitVulkan()
 	myCreateRenderPass();
 	myCreateDescriptorSetLayout();
 	myCreateGraphicsPipeline();
-	myCreateFramebuffers();
 	myCreateCommandPool();
+	myCreateDepthTestResources();
+	myCreateFramebuffers();
 	myCreateTextureImage();
 	myCreateTextureImageView();
 	myCreateTextureSampler();
@@ -191,7 +220,6 @@ void TriangleApplication::myCleanup()
 	myCleanupSwapChain();
 
 	vkDestroySampler(myLogicalDevice, myTextureSampler, nullptr);
-
 	vkDestroyImageView(myLogicalDevice, myTextureImageView, nullptr);
 
 	vkDestroyImage(myLogicalDevice, myTextureImage, nullptr);
@@ -291,7 +319,7 @@ void TriangleApplication::myCreateImageViews()
 {
 	mySwapChainImageViews.resize(mySwapChainImages.size());
 	for (size_t i = 0; i < mySwapChainImages.size(); ++i)
-		mySwapChainImageViews[i] = myCreateImageView(mySwapChainImages[i], mySwapChainImageFormat);
+		mySwapChainImageViews[i] = myCreateImageView(mySwapChainImages[i], mySwapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 void TriangleApplication::myCreateRenderPass()
@@ -313,15 +341,32 @@ void TriangleApplication::myCreateRenderPass()
 	colorAttachmentRef.attachment = 0;
 	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+	VkAttachmentDescription depthAttachment = {};
+	depthAttachment.format = findDepthFormat();
+	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentReference depthAttachmentRef = {};
+	depthAttachmentRef.attachment = 1;
+	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
 	VkSubpassDescription subpassDesc = {};
 	subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpassDesc.colorAttachmentCount = 1;
 	subpassDesc.pColorAttachments = &colorAttachmentRef;
+	subpassDesc.pDepthStencilAttachment = &depthAttachmentRef;
+
+	std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
 
 	VkRenderPassCreateInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderPassInfo.attachmentCount = 1;
-	renderPassInfo.pAttachments = &colorAttachment;
+	renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+	renderPassInfo.pAttachments = attachments.data();
 	renderPassInfo.subpassCount = 1;
 	renderPassInfo.pSubpasses = &subpassDesc;
 
@@ -445,7 +490,20 @@ void TriangleApplication::myCreateGraphicsPipeline()
 	multisampleInfo.alphaToOneEnable = VK_FALSE;
 
 	// Use this for depth and stencil testing
-	// VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
+	VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
+	depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	
+	depthStencilInfo.depthTestEnable = VK_TRUE;
+	depthStencilInfo.depthWriteEnable = VK_TRUE;
+	depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+	
+	depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
+	depthStencilInfo.minDepthBounds = 0.0f;
+	depthStencilInfo.maxDepthBounds = 1.0f;
+	
+	depthStencilInfo.stencilTestEnable = false;
+	depthStencilInfo.front = {};
+	depthStencilInfo.back = {};
 
 	VkPipelineColorBlendAttachmentState colorBlendAttachmentInfo = {};
 	colorBlendAttachmentInfo.colorWriteMask = VK_COLOR_COMPONENT_A_BIT | VK_COLOR_COMPONENT_G_BIT |
@@ -497,7 +555,7 @@ void TriangleApplication::myCreateGraphicsPipeline()
 	graphicsPipelineInfo.pViewportState = &viewportState;
 	graphicsPipelineInfo.pRasterizationState = &rasterizerInfo;
 	graphicsPipelineInfo.pMultisampleState = &multisampleInfo;
-	graphicsPipelineInfo.pDepthStencilState = nullptr;
+	graphicsPipelineInfo.pDepthStencilState = &depthStencilInfo;
 	graphicsPipelineInfo.pColorBlendState = &colorBlendInfo;
 	graphicsPipelineInfo.pDynamicState = nullptr;
 	graphicsPipelineInfo.layout = myPipelineLayout;
@@ -520,14 +578,15 @@ void TriangleApplication::myCreateFramebuffers()
 	mySwapChainFramebuffers.resize(mySwapChainImageViews.size());
 	for (size_t i = 0; i < mySwapChainImageViews.size(); ++i)
 	{
-		VkImageView attachments[] = {
-			mySwapChainImageViews[i]
+		std::array<VkImageView, 2> attachments = {
+			mySwapChainImageViews[i],
+			myDepthImageView
 		};
 		VkFramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferInfo.renderPass = myRenderPass;
-		framebufferInfo.attachmentCount = 1;
-		framebufferInfo.pAttachments = attachments;
+		framebufferInfo.attachmentCount = static_cast<uint32_t> (attachments.size());
+		framebufferInfo.pAttachments = attachments.data();
 		framebufferInfo.width = mySwapChainExtent.width;
 		framebufferInfo.height = mySwapChainExtent.height;
 		framebufferInfo.layers = 1;
@@ -539,7 +598,7 @@ void TriangleApplication::myCreateFramebuffers()
 
 void TriangleApplication::myCreateTextureImageView()
 {
-	myTextureImageView = myCreateImageView(myTextureImage, VK_FORMAT_R8G8B8A8_UNORM);
+	myTextureImageView = myCreateImageView(myTextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 void TriangleApplication::myCreateTextureSampler()
@@ -577,6 +636,16 @@ void TriangleApplication::myCreateCommandPool()
 	if (vkCreateCommandPool(myLogicalDevice, &poolInfo, nullptr, &myCommandPool) != VK_SUCCESS)
 		throw std::runtime_error("Failed to create command pool!");
 
+}
+
+void TriangleApplication::myCreateDepthTestResources()
+{
+	auto format = findDepthFormat();
+	myCreateImage(mySwapChainExtent.width, mySwapChainExtent.height, format, VK_IMAGE_TILING_OPTIMAL,
+		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, myDepthImage, myDepthImageMemory);
+	myDepthImageView = myCreateImageView(myDepthImage, format, VK_IMAGE_ASPECT_DEPTH_BIT);
+
+	transitionImageLayout(myDepthImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }
 
 void TriangleApplication::myCreateTextureImage()
@@ -721,7 +790,7 @@ void TriangleApplication::myEndSingleTimeCommands(VkCommandBuffer& commandBuffer
 	vkFreeCommandBuffers(myLogicalDevice, myCommandPool, 1, &commandBuffer);
 }
 
-VkImageView TriangleApplication::myCreateImageView(VkImage image, VkFormat format)
+VkImageView TriangleApplication::myCreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
 {
 	VkImageViewCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -737,6 +806,7 @@ VkImageView TriangleApplication::myCreateImageView(VkImage image, VkFormat forma
 	createInfo.subresourceRange.layerCount = 1;
 	createInfo.subresourceRange.levelCount = 1;
 	createInfo.subresourceRange.baseMipLevel = 0;
+	createInfo.subresourceRange.aspectMask = aspectFlags;
 
 	VkImageView imageView;
 	if (vkCreateImageView(myLogicalDevice, &createInfo, nullptr, &imageView) != VK_SUCCESS)
@@ -888,9 +958,11 @@ void TriangleApplication::myCreateCommandBuffers()
 		renderPassInfo.framebuffer = mySwapChainFramebuffers[i];
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = mySwapChainExtent;
-		VkClearValue clearValue = { 0.0f, 0.0f, 0.0f, 1.0f };
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearValue;
+		std::array<VkClearValue, 2>	clearValues;
+		clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
+		clearValues[1].depthStencil = {1.0f, 0};
+		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+		renderPassInfo.pClearValues = clearValues.data();
 		
 		// Render pass begins
 		vkCmdBeginRenderPass(myCommandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -922,12 +994,11 @@ void TriangleApplication::recreateSwapchain()
 
 	myCleanupSwapChain();
 
-	vkDestroyDescriptorPool(myLogicalDevice, myDescriptorPool, nullptr);
-
 	myCreateSwapChain();
 	myCreateImageViews();
 	myCreateRenderPass();
 	myCreateGraphicsPipeline();
+	myCreateDepthTestResources();
 	myCreateFramebuffers();
 	myCreateCommandBuffers();
 }
@@ -963,7 +1034,15 @@ void TriangleApplication::transitionImageLayout(VkImage image, VkFormat format, 
 	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; // Not useful since no ownership transfer
 	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; // has to be done
 	barrier.image = image;
-	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+	{
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+		if (hasStencilComponent(format))
+			barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+	}
+	else
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	barrier.subresourceRange.baseMipLevel = 0;
 	barrier.subresourceRange.levelCount = 1;
 	barrier.subresourceRange.baseArrayLayer = 0;
@@ -987,6 +1066,15 @@ void TriangleApplication::transitionImageLayout(VkImage image, VkFormat format, 
 
 		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+	{
+		barrier.srcAccessMask = 0;
+		barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 	}
 	else
 		throw std::invalid_argument("Unsupported layout transition!");
@@ -1021,6 +1109,10 @@ void TriangleApplication::copyBufferToImage(VkBuffer buffer, VkImage image, uint
 
 void TriangleApplication::myCleanupSwapChain()
 {
+	vkDestroyImageView(myLogicalDevice, myDepthImageView, nullptr);
+	vkDestroyImage(myLogicalDevice, myDepthImage, nullptr);
+	vkFreeMemory(myLogicalDevice, myDepthImageMemory, nullptr);
+
 	for (size_t i = 0; i < mySwapChainFramebuffers.size(); ++i)
 		vkDestroyFramebuffer(myLogicalDevice, mySwapChainFramebuffers[i], nullptr);
 

@@ -1,6 +1,6 @@
 ﻿  TriangleApplication.cpp
-c:\users\deves\documents\vs2015\triangle\triangle\triangleapplication.cpp(420): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
-c:\users\deves\documents\vs2015\triangle\triangle\triangleapplication.cpp(421): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
-c:\users\deves\documents\vs2015\triangle\triangle\triangleapplication.cpp(1169): warning C4838: conversion from 'int' to 'uint32_t' requires a narrowing conversion
+c:\users\deves\documents\vs2015\triangle\triangle\triangleapplication.cpp(465): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
+c:\users\deves\documents\vs2015\triangle\triangle\triangleapplication.cpp(466): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
+c:\users\deves\documents\vs2015\triangle\triangle\triangleapplication.cpp(1261): warning C4838: conversion from 'int' to 'uint32_t' requires a narrowing conversion
   Triangle.vcxproj -> C:\Users\deves\Documents\vs2015\Triangle\x64\Debug\Triangle.exe
   Triangle.vcxproj -> C:\Users\deves\Documents\vs2015\Triangle\x64\Debug\Triangle.pdb (Full PDB)
