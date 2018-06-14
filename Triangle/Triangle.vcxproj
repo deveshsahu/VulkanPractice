@@ -21,10 +21,14 @@
   <ItemGroup>
     <ClCompile Include="Helper.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="BSpline.cpp" />
+    <ClCompile Include="Surface.cpp" />
     <ClCompile Include="TriangleApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Helper.h" />
+    <ClInclude Include="BSpline.h" />
+    <ClInclude Include="Surface.h" />
     <ClInclude Include="TriangleApplication.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -46,7 +46,8 @@ public:
 
 public:
 	static void onWindowResized(GLFWwindow* window, int width, int height);
-
+	static void onCursorMove(GLFWwindow* window, double xpos, double ypos);
+	static void onMouseClicked(GLFWwindow* window, int button, int action, int mods);
 private:
 	void myInitWindow();
 	void myInitVulkan();
@@ -97,6 +98,9 @@ private:
 	bool myIsSuitableDevice(VkPhysicalDevice device);
 
 	void myCreateSemaphores();
+
+private:
+	bool myLeftClicked;
 
 private:
 	GLFWwindow * myWindow;

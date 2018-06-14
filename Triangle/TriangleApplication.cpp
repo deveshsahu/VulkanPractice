@@ -155,6 +155,8 @@ void TriangleApplication::myInitWindow()
 
 	glfwSetWindowUserPointer(myWindow, this);
 	glfwSetWindowSizeCallback(myWindow, TriangleApplication::onWindowResized);
+	glfwSetCursorPosCallback(myWindow, TriangleApplication::onCursorMove);
+	glfwSetMouseButtonCallback(myWindow, TriangleApplication::onMouseClicked);
 }
 
 void TriangleApplication::myInitVulkan()
@@ -1330,6 +1332,18 @@ void TriangleApplication::onWindowResized(GLFWwindow * window, int width, int he
 	auto app = reinterpret_cast<TriangleApplication*> (glfwGetWindowUserPointer(window));
 	app->recreateSwapchain();
 
+}
+
+void TriangleApplication::onCursorMove(GLFWwindow * window, double xpos, double ypos)
+{
+	int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+	if (state == GLFW_PRESS)
+		std::cout << "Called" << std::endl;
+}
+
+void TriangleApplication::onMouseClicked(GLFWwindow * window, int button, int action, int mods)
+{
+	
 }
 
 VkShaderModule TriangleApplication::myCreateShaderModule(const std::vector<char>& byteCode)
