@@ -4,3 +4,7 @@ This repository was created while I try to understand how Vulkan works. The tuto
 https://vulkan-tutorial.com/Introduction acted as a reference. The eventual plan is to render a surface
 /mesh using Vulkan and explore the possibility of handling different computational algorithms by GPU using
 the freedom and flexibility provided by Vulkan.
+
+For sake of practice, added OpenGL rendering capability as well. Two rendering pipelines currently work independently. Though they use the same GUI infrastructure.
+
+Used Libraries: GLFW, Vulkun, OpenGL, GLM
