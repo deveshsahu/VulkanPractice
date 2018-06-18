@@ -5,13 +5,9 @@
 #include <fstream>
 #include <array>
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORECE_DEPTH_ZERO_TO_ONE
-#include <glm\glm.hpp>
-#include <glm\gtc\matrix_transform.hpp>
+#include "Util.h"
 
 #include <chrono>
-
 
 VkResult CreateDebugReportCallbackEXT(VkInstance instance,
 	const VkDebugReportCallbackCreateInfoEXT * pCreateInfo,
@@ -50,25 +46,6 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> avail
 
 uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags flags, VkPhysicalDevice device);
 
-static std::vector<char> readFile(const std::string & filename)
-{
-	std::ifstream fs(filename, std::ios::ate | std::ios::binary);
-	if (!fs.is_open())
-		throw std::runtime_error("Failed to open file!");
-	size_t fileSize = (size_t)fs.tellg();
-	std::vector<char> buffer(fileSize);
-	fs.seekg(0);
-	fs.read(buffer.data(), fileSize);
-	fs.close();
-	return buffer;
-}
-
-struct Vertex {
-	glm::vec3 pos;
-	glm::vec3 color;
-	glm::vec2 texCoord;
-};
-
 static VkVertexInputBindingDescription getBindingDescription()
 {
 	VkVertexInputBindingDescription bindingDescription = {};
@@ -99,9 +76,3 @@ static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions
 
 	return attributeDescription;
 }
-
-struct MVP {
-	glm::mat4 model;
-	glm::mat4 view;
-	glm::mat4 projection;
-};

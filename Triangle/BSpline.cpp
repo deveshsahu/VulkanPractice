@@ -28,7 +28,6 @@ int BSpline::findSpan(float u)
 		mid = 0.5 * (low + hi);
 	}
 	return mid;
-	return 0;
 }
 
 std::vector<float> BSpline::evaluateBasisFunctions(int i, float u)

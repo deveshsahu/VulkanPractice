@@ -19,17 +19,42 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BezierRenderable.cpp" />
+    <ClCompile Include="GLSLProgram.cpp" />
+    <ClCompile Include="GLSLProgramManager.cpp" />
+    <ClCompile Include="gl_core_4_5.c" />
     <ClCompile Include="Helper.cpp" />
+    <ClCompile Include="LineStripRenderable.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="BSpline.cpp" />
+    <ClCompile Include="OpenGLRenderer.cpp" />
     <ClCompile Include="Surface.cpp" />
     <ClCompile Include="TriangleApplication.cpp" />
+    <ClCompile Include="VulkanRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BaseRenderable.h" />
+    <ClInclude Include="BaseRenderer.h" />
+    <ClInclude Include="BezierRenderable.h" />
+    <ClInclude Include="GLSLProgram.h" />
+    <ClInclude Include="GLSLProgramManager.h" />
+    <ClInclude Include="gl_core_4_5.h" />
     <ClInclude Include="Helper.h" />
     <ClInclude Include="BSpline.h" />
+    <ClInclude Include="LineStripRenderable.h" />
+    <ClInclude Include="OpenGLRenderer.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Surface.h" />
     <ClInclude Include="TriangleApplication.h" />
+    <ClInclude Include="Util.h" />
+    <ClInclude Include="VulkanRenderer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Triangle.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\oglFrag.fs" />
+    <None Include="Shaders\oglVert.vs" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{581e305a-b6da-4b5e-a657-af23f6454cde}</ProjectGuid>
@@ -101,10 +126,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\deves\Documents\vs2015\Libraries\glm-0.9.8.5\glm;C:\VulkanSDK\1.0.65.0\Include;C:\Users\deves\Documents\vs2015\Libraries\stb_master;C:\Users\deves\Documents\vs2015\Libraries\glfw-3.2.1.bin.WIN64\glfw-3.2.1.bin.WIN64\include;C:\Users\deves\Documents\vs2015\Libraries\glew-2.1.0-win32\glew-2.1.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\deves\Documents\vs2015\Libraries\glew-2.1.0-win32\glew-2.1.0\lib\Release\Win32;C:\Users\deves\Documents\vs2015\Libraries\glfw-3.2.1.bin.WIN64\glfw-3.2.1.bin.WIN64\lib-vc2015;C:\VulkanSDK\1.0.65.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;glew32.lib;glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -120,7 +148,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\deves\Documents\vs2015\Libraries\glfw-3.2.1.bin.WIN64\glfw-3.2.1.bin.WIN64\lib-vc2015;C:\VulkanSDK\1.0.65.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -138,6 +166,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\deves\Documents\vs2015\Libraries\glew-2.1.0-win32\glew-2.1.0\lib\Release\Win32;C:\Users\deves\Documents\vs2015\Libraries\glfw-3.2.1.bin.WIN64\glfw-3.2.1.bin.WIN64\lib-vc2015;C:\VulkanSDK\1.0.65.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -149,15 +178,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\deves\Documents\vs2015\Libraries\stb_master;C:\VulkanSDK\1.0.65.0\Include;C:\Users\deves\Documents\vs2015\Libraries\glm-0.9.8.5\glm;C:\Users\deves\Documents\vs2015\Libraries\glfw-3.2.1.bin.WIN64\glfw-3.2.1.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\deves\Documents\vs2015\Libraries\glew-2.1.0-win32\glew-2.1.0\include;C:\Users\deves\Documents\vs2015\Libraries\stb_master;C:\VulkanSDK\1.0.65.0\Include;C:\Users\deves\Documents\vs2015\Libraries\glm-0.9.8.5\glm;C:\Users\deves\Documents\vs2015\Libraries\glfw-3.2.1.bin.WIN64\glfw-3.2.1.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\deves\Documents\vs2015\Libraries\glfw-3.2.1.bin.WIN64\glfw-3.2.1.bin.WIN64\lib-vc2015;C:\VulkanSDK\1.0.65.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\deves\Documents\vs2015\Libraries\glew-2.1.0-win32\glew-2.1.0\lib\Release\x64;C:\Users\deves\Documents\vs2015\Libraries\glfw-3.2.1.bin.WIN64\glfw-3.2.1.bin.WIN64\lib-vc2015;C:\VulkanSDK\1.0.65.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;opengl32.lib;glfw3.lib;glew32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
