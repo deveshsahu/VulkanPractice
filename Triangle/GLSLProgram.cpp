@@ -81,3 +81,17 @@ void GLSLProgram::setUniform(const glm::mat4 & mat, const char * name)
 	if (location >= 0)
 		glUniformMatrix4fv(location, 1, GL_FALSE, &mat[0][0]);
 }
+
+void GLSLProgram::setUniform(float num, const char * name)
+{
+	auto location = glGetUniformLocation(myProgram, name);
+	if (location >= 0)
+		glUniform1f(location, num);
+}
+
+void GLSLProgram::setUniform(int num, const char * name)
+{
+	auto location = glGetUniformLocation(myProgram, name);
+	if (location >= 0)
+		glUniform1i(location, num);
+}

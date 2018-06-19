@@ -12,8 +12,8 @@ const int HEIGHT = 600;
 
 TriangleApplication::TriangleApplication()
 {
-	//myCurrentRenderer = &myOpenglRenderer;
-	myCurrentRenderer = &myVulkanRenderer;
+	myCurrentRenderer = &myOpenglRenderer;
+	//myCurrentRenderer = &myVulkanRenderer;
 }
 
 TriangleApplication::~TriangleApplication()

@@ -1,6 +1,7 @@
 #include "OpenGLRenderer.h"
 
 #include "LineStripRenderable.h"
+#include "BezierRenderable.h"
 #include <iostream>
 
 void OpenGLRenderer::init()
@@ -12,8 +13,6 @@ void OpenGLRenderer::init()
 	std::cout << "INFO: " << num << " out of "
 		<< ogl_LOAD_SUCCEEDED << "successfully loaded!" << std::endl;
 	if (num == 0)
-		flagAsBroken();
-	if (!myInitOpengl())
 		flagAsBroken();
 	myCreateScene();
 }
@@ -36,6 +35,7 @@ void OpenGLRenderer::cleanup()
 void OpenGLRenderer::resizeCallback(int width, int height)
 {
 	glViewport(0, 0, width, height);
+	myCamera.evaluate(width, height);
 }
 
 void OpenGLRenderer::addWindow(GLFWwindow * window)
@@ -45,8 +45,7 @@ void OpenGLRenderer::addWindow(GLFWwindow * window)
 
 bool OpenGLRenderer::myInitOpengl()
 {
-	int width, height;
-	glfwGetWindowSize(myWindow, &width, &height);
+	
 	return true;
 }
 
@@ -54,19 +53,22 @@ void OpenGLRenderer::myCreateScene()
 {
 	auto lines = std::make_shared<LineStripRenderable>();
 	lines->addProgram(myProgramManager.getGLSLProgram(GLSLProgramManager::PROGRAM_TYPE::SIMPLE));
-	myScneObjectList.push_back(lines);
-
-	//myMVP.projection = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.1f, 100.0f);
-	myMVP.update();
+	mySceneObjectList.push_back(lines);
+	auto bezier = std::make_shared<BezierRenderable>();
+	bezier->addProgram(myProgramManager.getGLSLProgram(GLSLProgramManager::PROGRAM_TYPE::BEZIER));
+	mySceneObjectList.push_back(bezier);
+	int width, height;
+	glfwGetWindowSize(myWindow, &width, &height);
+	myCamera.evaluate(width, height);
 }
 
 void OpenGLRenderer::myRender()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
-	glClearColor(1.0, 0.0, 0.0, 1.0f);
+	glClearColor(0.0, 0.0, 0.0, 1.0f);
 	
-	for (auto& object : myScneObjectList)
-		object->render(myMVP);
+	for (auto& object : mySceneObjectList)
+		object->render(myCamera.getMVP());
 }
 
 void OpenGLRenderer::mySwapBuffer()

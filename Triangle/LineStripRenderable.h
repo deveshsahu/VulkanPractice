@@ -2,8 +2,6 @@
 #include "BaseRenderable.h"
 
 #include "gl_core_4_5.h"
-#include <glm\glm.hpp>
-
 #include <vector>
 
 
@@ -23,8 +21,9 @@ protected:
 	std::vector<glm::vec3> PositionData =
 	{
 		glm::vec3(-0.5, 0.0, 0.0),
-		glm::vec3(0.5, 0.0, 0.0),
-		glm::vec3(0.0, 0.5, 0.0)
+		glm::vec3(-0.1, 0.5, 0.0),
+		glm::vec3(0.3, 0.3, 0.0),
+		glm::vec3(0.5, 0.0, 0.0)
 	};
 
 	GLuint myVAO;

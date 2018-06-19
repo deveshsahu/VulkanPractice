@@ -19,6 +19,8 @@ public:
 	void use();
 	void createProgram(std::vector<Shader>& shaders);
 	void setUniform(const glm::mat4& mat, const char* name);
+	void setUniform(float num, const char* name);
+	void setUniform(int num, const char* name);
 private:
 	GLuint 	myProgram = -1;
 };

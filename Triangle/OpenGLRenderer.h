@@ -5,6 +5,7 @@
 #include "BaseRenderer.h"
 #include "BaseRenderable.h"
 #include "GLSLProgramManager.h"
+#include "Camera.h"
 
 class OpenGLRenderer : public BaseRenderer
 {
@@ -28,8 +29,8 @@ private:
 	void myRender();
 	void mySwapBuffer();
 
-	MVP myMVP = MVP();
+	Camera myCamera;
 
 	GLSLProgramManager myProgramManager;
-	std::vector<std::shared_ptr<BaseRenderable>> myScneObjectList;
+	std::vector<std::shared_ptr<BaseRenderable>> mySceneObjectList;
 };

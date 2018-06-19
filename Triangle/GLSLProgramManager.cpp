@@ -14,9 +14,26 @@ void GLSLProgramManager::init()
 	simpleShaderList.push_back(vtxShader);
 	simpleShaderList.push_back(fragShader);
 
+	std::vector<Shader> bezierShaderList;
+	Shader tcsShader, tesShader;
+	tcsShader.shaderType = GL_TESS_CONTROL_SHADER;
+	tcsShader.shaderCode = readFile("Shaders/oglTess.tcs");
+	tcsShader.shaderCode.push_back('\0');
+	tesShader.shaderType = GL_TESS_EVALUATION_SHADER;
+	tesShader.shaderCode = readFile("Shaders/oglTess.tes");
+	tesShader.shaderCode.push_back('\0');
+	bezierShaderList.push_back(vtxShader);
+	bezierShaderList.push_back(tcsShader);
+	bezierShaderList.push_back(tesShader);
+	bezierShaderList.push_back(fragShader);
+
 	auto simpleProgram = std::make_shared<GLSLProgram>();
 	simpleProgram->createProgram(simpleShaderList);
 	myProgramList.push_back(simpleProgram);
+
+	auto bezierProgram = std::make_shared<GLSLProgram>();
+	bezierProgram->createProgram(bezierShaderList);
+	myProgramList.push_back(bezierProgram);
 }
 
 std::weak_ptr<GLSLProgram> GLSLProgramManager::getGLSLProgram(int type)

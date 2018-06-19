@@ -7,6 +7,7 @@ public:
 	enum PROGRAM_TYPE
 	{
 		SIMPLE,
+		BEZIER,
 		SIZE
 	};
 	GLSLProgramManager() = default;
